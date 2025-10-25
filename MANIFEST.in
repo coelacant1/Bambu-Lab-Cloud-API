@@ -1,0 +1,13 @@
+include README.md
+include LICENSE
+include CHANGELOG.md
+include CONTRIBUTING.md
+include INSTALL.md
+include requirements.txt
+include API_*.md
+recursive-include servers *.json.example
+recursive-include tests *.json.example
+recursive-exclude tests *.json
+recursive-exclude tests __pycache__
+recursive-exclude * *.py[co]
+recursive-exclude * __pycache__

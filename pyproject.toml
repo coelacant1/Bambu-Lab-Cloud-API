@@ -1,0 +1,89 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bambu-lab-cloud-api"
+version = "1.0.0"
+description = "Python library for Bambu Lab 3D printer Cloud API, MQTT, and local connections"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "AGPL-3.0"}
+authors = [
+    {name = "Bambu Lab API Contributors"}
+]
+keywords = ["bambu", "bambulab", "3dprinting", "api", "mqtt"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU Affero General Public License v3",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Hardware",
+]
+
+dependencies = [
+    "requests>=2.25.0",
+    "paho-mqtt>=1.6.0",
+]
+
+[project.optional-dependencies]
+server = [
+    "flask>=2.0.0",
+    "flask-cors>=3.0.0",
+]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+]
+all = [
+    "flask>=2.0.0",
+    "flask-cors>=3.0.0",
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/coelacant1/Bambu-Lab-Cloud-API"
+Documentation = "https://github.com/coelacant1/Bambu-Lab-Cloud-API#readme"
+Repository = "https://github.com/coelacant1/Bambu-Lab-Cloud-API"
+Issues = "https://github.com/coelacant1/Bambu-Lab-Cloud-API/issues"
+
+[project.scripts]
+bambu-query = "cli_tools.query:main"
+bambu-monitor = "cli_tools.monitor:main"
+bambu-camera = "cli_tools.camera_viewer:main"
+
+[tool.setuptools]
+packages = ["bambulab", "servers", "cli_tools"]
+
+[tool.setuptools.package-data]
+bambulab = ["py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+
+[tool.coverage.run]
+source = ["bambulab"]
+omit = ["tests/*", "*/site-packages/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]

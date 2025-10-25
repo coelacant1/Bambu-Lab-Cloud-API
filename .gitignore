@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+venv/
+myvenv/
+
+# Tokens and secrets
+proxy_tokens.json
+!proxy_tokens.json.example
+tokens.json
+*.token
+*.key
+*.pem
+!examples/*.pem
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Config files with secrets
+config.json
+!*config.json.example
+compatibility_config.json
+.env
+
+# Generated files
+router-*.js
+extracted_api_structure.json
+test_config.json
+test_upload.3mf
+analysis/
+analysis/*
