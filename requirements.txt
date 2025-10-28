@@ -2,3 +2,4 @@ flask
 flask-cors
 requests
 paho-mqtt
+opencv-python

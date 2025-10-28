@@ -36,7 +36,7 @@ __author__ = "Coela"
 
 from .client import BambuClient, BambuAPIError
 from .mqtt import MQTTClient, MQTTBridge
-from .auth import TokenManager
+from .auth import TokenManager, BambuAuthenticator, BambuAuthError
 from .models import Device, PrinterStatus
 from .utils import format_timestamp, parse_device_data
 from .video import RTSPStream, JPEGFrameStream, VideoStreamError, get_video_stream
@@ -48,6 +48,8 @@ __all__ = [
     'MQTTClient',
     'MQTTBridge',
     'TokenManager',
+    'BambuAuthenticator',
+    'BambuAuthError',
     'Device',
     'PrinterStatus',
     'format_timestamp',

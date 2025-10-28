@@ -30,6 +30,7 @@ classifiers = [
 dependencies = [
     "requests>=2.25.0",
     "paho-mqtt>=1.6.0",
+    "opencv-python>=4.0.0",
 ]
 
 [project.optional-dependencies]

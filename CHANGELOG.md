@@ -2,10 +2,38 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.3]
+
+### Added
+- **Two-Factor Authentication Support**
+  - `BambuAuthenticator` class for complete login flow with 2FA
+  - Automatic email verification code handling
+  - MFA (multi-factor authentication) support
+  - Token persistence with secure file storage (0600 permissions)
+  - Token validation and auto-refresh functionality
+  - Support for both Global and China API regions
+- **CLI Authentication Tool** (`cli_tools/login.py`)
+  - Interactive login with email verification code prompt
+  - Non-interactive mode with command-line arguments
+  - Token verification and testing
+  - Force new login option
+- **Authentication Documentation**
+  - Updated [API_AUTHENTICATION.md](API_AUTHENTICATION.md) with complete login flow
+- **Authentication Tests**
+  - Unit tests for `BambuAuthenticator` class
+  - Token save/load/verify functionality tests
+  - Mock-based login flow testing
+  - 12/12 tests passing
+
+### Changed
+- Enhanced `bambulab/__init__.py` to export `BambuAuthenticator` and `BambuAuthError`
+- Updated README.md with authentication quick start guide
+- Improved auth.py with comprehensive 2FA flow implementation
+
 ## [1.0.0] - 2025-10-25
 
 ### Major Release
-This release provides a comprehensive, production-ready library and documentation for interacting with Bambu Lab printers via cloud and local protocols without requiring developer mode.
+This release provides a comprehensive, library and documentation for interacting with Bambu Lab printers via cloud and local protocols without requiring developer mode.
 
 ### Added
 - **Complete Python Library** (`bambulab/`)
