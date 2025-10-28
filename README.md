@@ -15,7 +15,7 @@ My goal with this project was to create a proxy for handling read only data from
 
 - **API Documentation** - Complete endpoint reference with examples
 - **Python Library** - Unified client for Cloud API, MQTT, local FTP, and video streams
-- **Authentication** - Multiple methods to obtain access tokens
+- **Authentication with 2FA** - Automatic login with email verification code support
 - **MQTT Support** - Real-time printer monitoring and control
 - **File Upload** - Cloud API and local FTP upload support
 - **Video Streaming** - RTSP (X1 series) and JPEG frame streaming (A1/P1 series)
@@ -26,6 +26,24 @@ My goal with this project was to create a proxy for handling read only data from
 
 ![P1S Video Stream](screenshots/P1SStream.png)
 *Live JPEG frame streaming from P1S printer camera*
+
+## Quick Start: Authentication
+
+### Get Your Access Token
+
+```bash
+# Interactive login with 2FA support
+python cli_tools/login.py
+
+# Or non-interactive
+python cli_tools/login.py --username user@email.com --password yourpass
+```
+
+The tool will:
+1. Submit your credentials to Bambu Lab
+2. Request email verification code
+3. Prompt you to enter the code from your email
+4. Save the token to `~/.bambu_token` for future use
 
 ## Quick Test (Automated)
 
@@ -89,6 +107,26 @@ pip install bambu-lab-cloud-api[server]
 ```
 
 See [INSTALL.md](INSTALL.md) for detailed installation instructions.
+
+### Authentication
+
+```python
+from bambulab import BambuAuthenticator, BambuClient
+
+# Authenticate with 2FA support
+auth = BambuAuthenticator()
+token = auth.login("your-email@example.com", "your-password")
+# ^ Will prompt for email verification code
+
+# Or use saved token (auto-refresh if needed)
+token = auth.get_or_create_token(
+    username="your-email@example.com",
+    password="your-password"
+)
+
+# Use token with client
+client = BambuClient(token=token)
+```
 
 ### Cloud API
 

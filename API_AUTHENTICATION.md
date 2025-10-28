@@ -1,8 +1,379 @@
 # Bambu Lab Cloud API - Authentication
 
-**Last Updated:** 2025-10-25
+**Last Updated:** 2025-10-28
 
-This document covers all authentication methods for the Bambu Lab Cloud API.
+This document covers all authentication methods for the Bambu Lab Cloud API, including the new login flow with two-factor authentication.
+
+---
+
+## Quick Start: Login with 2FA
+
+### Using the CLI Tool
+
+```bash
+# Interactive login (recommended)
+python cli_tools/login.py
+
+# Non-interactive login
+python cli_tools/login.py --username user@email.com --password yourpass
+
+# China region
+python cli_tools/login.py --region china --username user@email.com
+
+# Verify existing token
+python cli_tools/login.py --verify-only
+
+# Test token by fetching profile
+python cli_tools/login.py --test
+```
+
+### Using the Python API
+
+```python
+from bambulab import BambuAuthenticator, BambuClient
+
+# Authenticate and get token
+auth = BambuAuthenticator(region="global")
+token = auth.login(
+    username="your-email@example.com",
+    password="your-password"
+)
+
+# Token is automatically saved to ~/.bambu_token
+# Use with API client
+client = BambuClient(token=token)
+devices = client.get_devices()
+```
+
+---
+
+## Login Flow with Two-Factor Authentication
+
+Bambu Lab enforces two-factor authentication via email verification for all users.
+
+### Authentication Process
+
+1. **Initial Login**: Submit email and password
+2. **Verification Code**: Bambu Lab sends 6-digit code to your email
+3. **Code Verification**: Enter code to complete authentication
+4. **Token Received**: Get access token for API calls
+
+### Python Implementation
+
+```python
+from bambulab import BambuAuthenticator, BambuAuthError
+
+auth = BambuAuthenticator()
+
+try:
+    # Method 1: Interactive (prompts for code)
+    token = auth.login("user@email.com", "password")
+    
+    # Method 2: Custom callback
+    def get_code():
+        return input("Enter code from email: ")
+    
+    token = auth.login("user@email.com", "password", get_code)
+    
+    # Method 3: Use saved token if valid, login if needed
+    token = auth.get_or_create_token(
+        username="user@email.com",
+        password="password"
+    )
+    
+    print(f"Logged in! Token: {token[:20]}...")
+    
+except BambuAuthError as e:
+    print(f"Authentication failed: {e}")
+```
+
+### Token Storage
+
+Tokens are automatically saved to `~/.bambu_token` with secure permissions (0600):
+
+```python
+{
+  "region": "global",
+  "token": "eyJhbGc..."
+}
+```
+
+Custom token file location:
+
+```python
+auth = BambuAuthenticator(token_file="/path/to/token.json")
+```
+
+---
+
+## Login API Endpoints
+
+### 1. Initial Login
+
+**Endpoint:** `POST /v1/user-service/user/login`
+
+**Request:**
+```json
+{
+  "account": "user@email.com",
+  "password": "your_password",
+  "apiError": ""
+}
+```
+
+**Response (Success):**
+```json
+{
+  "success": true,
+  "accessToken": "eyJhbGc..."
+}
+```
+
+**Response (2FA Required):**
+```json
+{
+  "success": false,
+  "loginType": "verifyCode"
+}
+```
+
+**Response (MFA Required):**
+```json
+{
+  "success": false,
+  "loginType": "tfa",
+  "tfaKey": "..."
+}
+```
+
+### 2. Send Verification Code
+
+**Endpoint:** `POST /v1/user-service/user/sendemail/code`
+
+**Request:**
+```json
+{
+  "email": "user@email.com",
+  "type": "codeLogin"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Verification code sent"
+}
+```
+
+### 3. Verify Code and Login
+
+**Endpoint:** `POST /v1/user-service/user/login`
+
+**Request:**
+```json
+{
+  "account": "user@email.com",
+  "code": "123456"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "accessToken": "eyJhbGc..."
+}
+```
+
+### 4. MFA Verification (if enabled)
+
+**Endpoint:** `POST /api/sign-in/tfa`
+
+**Request:**
+```json
+{
+  "tfaKey": "...",
+  "tfaCode": "123456"
+}
+```
+
+---
+
+## BambuAuthenticator API Reference
+
+### Class: `BambuAuthenticator`
+
+```python
+class BambuAuthenticator:
+    def __init__(
+        self,
+        region: str = "global",
+        token_file: Optional[str] = None
+    )
+```
+
+**Parameters:**
+- `region`: API region - "global" (default) or "china"
+- `token_file`: Path to save tokens (default: `~/.bambu_token`)
+
+### Methods
+
+#### `login()`
+
+Perform login with 2FA support.
+
+```python
+def login(
+    self,
+    username: str,
+    password: str,
+    code_callback: Optional[Callable[[], str]] = None
+) -> str
+```
+
+**Parameters:**
+- `username`: Bambu Lab account email
+- `password`: Account password
+- `code_callback`: Optional function to get verification code
+
+**Returns:** Access token string
+
+**Raises:** `BambuAuthError` on failure
+
+#### `get_or_create_token()`
+
+Get existing token or login if needed.
+
+```python
+def get_or_create_token(
+    self,
+    username: Optional[str] = None,
+    password: Optional[str] = None,
+    code_callback: Optional[Callable[[], str]] = None,
+    force_new: bool = False
+) -> str
+```
+
+**Parameters:**
+- `username`: Account email (required if no saved token)
+- `password`: Account password (required if no saved token)
+- `code_callback`: Optional code input function
+- `force_new`: Force new login even if token exists
+
+**Returns:** Valid access token
+
+#### `save_token()`
+
+Save token to file.
+
+```python
+def save_token(self, token: str) -> None
+```
+
+#### `load_token()`
+
+Load saved token from file.
+
+```python
+def load_token(self) -> Optional[str]
+```
+
+**Returns:** Token string or None
+
+#### `verify_token()`
+
+Check if token is valid.
+
+```python
+def verify_token(self, token: str) -> bool
+```
+
+**Returns:** True if valid, False otherwise
+
+---
+
+## Advanced Examples
+
+### Automated Code Retrieval
+
+```python
+def fetch_code_from_email():
+    """Fetch code from email automatically"""
+    # Example: Use IMAP to read email
+    import imaplib
+    import re
+    
+    # Connect to email
+    mail = imaplib.IMAP4_SSL('imap.gmail.com')
+    mail.login('user@email.com', 'app_password')
+    mail.select('INBOX')
+    
+    # Search for Bambu Lab email
+    _, messages = mail.search(None, 'FROM "noreply@bambulab.com"')
+    latest = messages[0].split()[-1]
+    
+    # Fetch and parse
+    _, msg = mail.fetch(latest, '(RFC822)')
+    email_body = msg[0][1].decode()
+    
+    # Extract 6-digit code
+    match = re.search(r'\b\d{6}\b', email_body)
+    return match.group(0) if match else None
+
+# Use with authenticator
+auth = BambuAuthenticator()
+token = auth.login("user@email.com", "password", fetch_code_from_email)
+```
+
+### GUI Integration
+
+```python
+import tkinter as tk
+from tkinter import messagebox
+
+def get_code_via_gui():
+    """Show GUI dialog for code input"""
+    root = tk.Tk()
+    root.withdraw()
+    
+    code = tk.simpledialog.askstring(
+        "Verification Code",
+        "Enter the 6-digit code from your email:"
+    )
+    
+    return code
+
+auth = BambuAuthenticator()
+token = auth.login("user@email.com", "password", get_code_via_gui)
+```
+
+### Retry Logic
+
+```python
+from bambulab import BambuAuthenticator, BambuAuthError
+import time
+
+def login_with_retry(username, password, max_retries=3):
+    """Login with retry logic"""
+    auth = BambuAuthenticator()
+    
+    for attempt in range(max_retries):
+        try:
+            token = auth.login(username, password)
+            return token
+        except BambuAuthError as e:
+            if attempt < max_retries - 1:
+                print(f"Attempt {attempt + 1} failed: {e}")
+                print("Retrying in 5 seconds...")
+                time.sleep(5)
+            else:
+                raise
+    
+    return None
+
+token = login_with_retry("user@email.com", "password")
+```
 
 ---
 
