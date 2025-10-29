@@ -58,8 +58,8 @@ class PrinterMonitor:
         
         # Temperatures
         print(f"\nTemperatures:")
-        print(f"  Nozzle:  {format_temperature(status.nozzle_temp)} → {format_temperature(status.nozzle_target_temp)}")
-        print(f"  Bed:     {format_temperature(status.bed_temp)} → {format_temperature(status.bed_target_temp)}")
+        print(f"  Nozzle:  {format_temperature(status.nozzle_temp)} -> {format_temperature(status.nozzle_target_temp)}")
+        print(f"  Bed:     {format_temperature(status.bed_temp)} -> {format_temperature(status.bed_target_temp)}")
         print(f"  Chamber: {format_temperature(status.chamber_temp)}")
         
         # Print progress

@@ -23,8 +23,8 @@ import signal
 import tempfile
 from pathlib import Path
 
-# Add parent directory to path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Add repository root to path (two levels up from this file)
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from bambulab import (
     BambuClient,
@@ -754,7 +754,7 @@ class TestRunner:
                                                             unit_id = unit.get('id', '?')
                                                             humidity = unit.get('humidity', '?')
                                                             temp = unit.get('temp', '?')
-                                                            print(f"             Unit {unit_id}: {humidity}% humidity, {temp}°C")
+                                                            print(f"             Unit {unit_id}: {humidity}% humidity, {temp}C")
                                                             if 'tray' in unit:
                                                                 for tray in unit['tray']:
                                                                     if tray.get('tray_type'):

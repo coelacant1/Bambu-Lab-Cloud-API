@@ -5,28 +5,21 @@
 ### From PyPI (Recommended)
 
 ```bash
-# Basic installation
+# Complete installation (includes all features)
 pip install bambu-lab-cloud-api
 
-# With server components
-pip install bambu-lab-cloud-api[server]
-
-# With development tools
+# With development tools only
 pip install bambu-lab-cloud-api[dev]
-
-# Everything
-pip install bambu-lab-cloud-api[all]
 ```
+
+**Note:** As of v1.0.4, the base install includes all features (API, MQTT, camera, proxy server).
+No need for `[server]` or `[all]` extras anymore!
 
 ### From GitHub (Latest)
 
 ```bash
 # Install directly from GitHub main branch
 pip install git+https://github.com/coelacant1/Bambu-Lab-Cloud-API.git
-
-# With extras
-pip install "bambu-lab-cloud-api[server] @ git+https://github.com/coelacant1/Bambu-Lab-Cloud-API.git"
-pip install "bambu-lab-cloud-api[all] @ git+https://github.com/coelacant1/Bambu-Lab-Cloud-API.git"
 ```
 
 ### From Source (Development)
@@ -39,11 +32,8 @@ cd Bambu-Lab-Cloud-API
 # Install in development mode
 pip install -e .
 
-# Or install with server dependencies
-pip install -e ".[server]"
-
-# Or install with all dependencies
-pip install -e ".[all]"
+# Or with development tools
+pip install -e ".[dev]"
 ```
 
 ## Configuration
@@ -100,17 +90,21 @@ bambu-camera --help
 
 ## Dependencies
 
-### Core Dependencies
+### Included in Base Install
+
 - `requests>=2.25.0` - HTTP API calls
 - `paho-mqtt>=1.6.0` - MQTT communication
-
-### Server Dependencies (optional)
-- `flask>=2.0.0` - Web server framework
+- `opencv-python>=4.0.0` - Camera streaming
+- `flask>=2.0.0` - Proxy server
 - `flask-cors>=3.0.0` - CORS support
+- `flask-limiter>=3.5.0` - Rate limiting
 
-### Development Dependencies (optional)
+### Optional: Development Tools
+
 - `pytest>=7.0.0` - Testing framework
 - `pytest-cov>=4.0.0` - Coverage reporting
+
+Install with: `pip install bambu-lab-cloud-api[dev]`
 
 ## Troubleshooting
 

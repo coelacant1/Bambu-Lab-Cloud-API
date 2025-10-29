@@ -146,12 +146,12 @@ def main():
                         print(f"\n  Temperatures:")
                         if 'nozzle_temper' in print_data:
                             target = print_data.get('nozzle_target_temper', 0)
-                            print(f"    Nozzle: {print_data['nozzle_temper']}°C → {target}°C")
+                            print(f"    Nozzle: {print_data['nozzle_temper']}C -> {target}C")
                         if 'bed_temper' in print_data:
                             target = print_data.get('bed_target_temper', 0)
-                            print(f"    Bed: {print_data['bed_temper']}°C → {target}°C")
+                            print(f"    Bed: {print_data['bed_temper']}C -> {target}C")
                         if 'chamber_temper' in print_data:
-                            print(f"    Chamber: {print_data['chamber_temper']}°C")
+                            print(f"    Chamber: {print_data['chamber_temper']}C")
                         
                         # Fans
                         if any(k in print_data for k in ['cooling_fan_speed', 'aux_part_fan', 'chamber_fan']):

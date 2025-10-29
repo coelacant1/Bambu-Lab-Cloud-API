@@ -67,7 +67,7 @@ def format_temperature(temp: Optional[float]) -> str:
     """
     if temp is None:
         return "N/A"
-    return f"{temp:.1f}°C"
+    return f"{temp:.1f}C"
 
 
 def format_percentage(value: Optional[int]) -> str:

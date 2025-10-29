@@ -1,0 +1,1 @@
+"""Manual/live tests for Bambu Lab Cloud API library."""

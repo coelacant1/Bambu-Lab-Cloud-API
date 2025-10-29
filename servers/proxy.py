@@ -17,7 +17,11 @@ Usage:
 
 import sys
 import os
+import re
+import copy
 from flask import Flask, request, jsonify, Response
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 # Add parent directory to path for bambulab import
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -36,6 +40,137 @@ PORTS = {
     "strict": 5001,
     "full": 5003
 }
+
+# Rate limiting configuration (1/4 of Bambu Cloud API limits)
+# Based on expected Bambu Cloud limits:
+#   Device Queries: 120/min -> 30/min
+#   User Profile: 60/min -> 15/min
+#   Task History: 60/min -> 15/min
+RATE_LIMITS = {
+    "default": "30 per minute",      # General API calls
+    "user": "15 per minute",         # User endpoints
+    "admin": "10 per minute",        # Admin endpoints
+    "health": "60 per minute"        # Health checks (more lenient)
+}
+
+# Initialize rate limiter
+# Uses token from Authorization header as key for per-token limiting
+def get_token_key():
+    """Extract token from Authorization header for rate limiting"""
+    auth = request.headers.get('Authorization', '')
+    token = auth.replace('Bearer ', '').strip()
+    if token:
+        return f"token:{token}"
+    return get_remote_address()
+
+limiter = Limiter(
+    app=app,
+    key_func=get_token_key,
+    default_limits=[RATE_LIMITS["default"]],
+    storage_uri="memory://",
+    strategy="fixed-window",
+    headers_enabled=True,  # Ensure rate limit headers are sent
+    swallow_errors=False   # Show rate limit errors
+)
+
+# Global token manager
+token_manager = None
+
+
+def mask_sensitive_data(data, custom_token=None):
+    """
+    Recursively mask sensitive data in API responses.
+    
+    Masks:
+    - Device access codes (dev_access_code)
+    - URLs (http://, https://, ftp://)
+    - IP addresses
+    - Tokens (any field containing 'token')
+    - Custom tokens passed to proxy
+    
+    Args:
+        data: Response data (dict, list, or primitive)
+        custom_token: The custom token to mask if found
+        
+    Returns:
+        Masked copy of data
+    """
+    if data is None:
+        return None
+    
+    # Work with a deep copy to avoid modifying original
+    if isinstance(data, dict):
+        result = {}
+        for key, value in data.items():
+            key_lower = key.lower()
+            
+            # Mask device access codes
+            if key_lower in ['dev_access_code', 'access_code', 'accesscode']:
+                result[key] = "********"
+            # Mask any field containing 'token'
+            elif 'token' in key_lower and isinstance(value, str):
+                result[key] = mask_token(value)
+            # Recursively process nested structures
+            elif isinstance(value, (dict, list)):
+                result[key] = mask_sensitive_data(value, custom_token)
+            # Mask URLs and IPs in string values
+            elif isinstance(value, str):
+                result[key] = mask_urls_and_ips(value, custom_token)
+            else:
+                result[key] = value
+        return result
+        
+    elif isinstance(data, list):
+        return [mask_sensitive_data(item, custom_token) for item in data]
+    
+    elif isinstance(data, str):
+        return mask_urls_and_ips(data, custom_token)
+    
+    else:
+        return data
+
+
+def mask_token(token):
+    """Mask a token, showing only first 20 chars"""
+    if not token or len(token) < 10:
+        return "***"
+    return token[:20] + "..."
+
+
+def mask_urls_and_ips(text, custom_token=None):
+    """
+    Mask URLs, IP addresses, and custom tokens in text.
+    
+    Args:
+        text: String to mask
+        custom_token: Custom token to mask if found
+        
+    Returns:
+        Masked string
+    """
+    if not isinstance(text, str):
+        return text
+    
+    # Mask custom token if provided
+    if custom_token and custom_token in text:
+        text = text.replace(custom_token, "***REDACTED***")
+    
+    # Mask URLs (http://, https://, ftp://)
+    text = re.sub(
+        r'(https?|ftp)://[^\s<>"{}|\\^`\[\]]+',
+        '[URL_REDACTED]',
+        text
+    )
+    
+    # Mask IP addresses (but preserve localhost references)
+    text = re.sub(
+        r'\b(?:(?!127\.0\.0\.1)(?!localhost)(?:\d{1,3}\.){3}\d{1,3})\b',
+        '[IP_REDACTED]',
+        text
+    )
+    
+    return text
+
 
 # Global token manager
 token_manager = None
@@ -60,17 +195,24 @@ def check_strict_mode():
 
 
 @app.route('/health', methods=['GET'])
+@limiter.limit(RATE_LIMITS["health"])
 def health():
     """Health check endpoint."""
     return jsonify({
         "status": "healthy",
         "mode": PROXY_MODE,
         "backend": BambuClient.BASE_URL,
-        "tokens_configured": token_manager.count() if token_manager else 0
+        "tokens_configured": token_manager.count() if token_manager else 0,
+        "rate_limits": {
+            "device_queries": "30 per minute",
+            "user_endpoints": "15 per minute",
+            "admin_endpoints": "10 per minute"
+        }
     })
 
 
 @app.route('/', methods=['GET'])
+@limiter.limit(RATE_LIMITS["health"])
 def info():
     """API information endpoint."""
     descriptions = {
@@ -87,6 +229,12 @@ def info():
             "health": "/health",
             "admin_tokens": "/admin/tokens",
             "api_base": "/v1/"
+        },
+        "rate_limits": {
+            "device_queries": "30 per minute",
+            "user_endpoints": "15 per minute",
+            "admin_endpoints": "10 per minute",
+            "health_check": "60 per minute"
         }
     }
     
@@ -115,6 +263,14 @@ def proxy_v1(endpoint):
             "message": "Unauthorized"
         }), 401
     
+    # Apply rate limiting based on endpoint type
+    # User endpoints get lower limit (15/min)
+    if 'user-service' in endpoint or 'design-user-service' in endpoint:
+        limiter.limit(RATE_LIMITS["user"])(lambda: None)()
+    # Device endpoints get default limit (30/min)
+    else:
+        limiter.limit(RATE_LIMITS["default"])(lambda: None)()
+    
     # Create client with real token
     client = BambuClient(real_token)
     
@@ -139,26 +295,30 @@ def proxy_v1(endpoint):
         else:
             return jsonify({"error": "Method not supported"}), 405
         
-        # Return the result
+        # Mask sensitive data before returning
         if result is not None:
-            return jsonify(result)
+            masked_result = mask_sensitive_data(result, custom_token)
+            return jsonify(masked_result)
         else:
             return '', 204  # No content
             
     except BambuAPIError as e:
+        # Mask sensitive data in error messages too
+        error_msg = mask_urls_and_ips(str(e), custom_token)
         return jsonify({
             "error": "API request failed",
-            "message": str(e)
+            "message": error_msg
         }), 502
 
 
 @app.route('/admin/tokens', methods=['GET'])
+@limiter.limit(RATE_LIMITS["admin"])
 def list_tokens():
-    """List configured tokens"""
+    """List configured tokens (without exposing real tokens)"""
     tokens_list = [
         {
             "custom_token": custom,
-            "real_token_preview": masked
+            "has_real_token": True
         }
         for custom, masked in token_manager.list_tokens().items()
     ]
@@ -166,6 +326,16 @@ def list_tokens():
         "tokens": tokens_list,
         "count": token_manager.count()
     })
+
+
+@app.errorhandler(429)
+def ratelimit_handler(e):
+    """Handle rate limit exceeded"""
+    return jsonify({
+        "error": "Rate limit exceeded",
+        "message": str(e.description),
+        "retry_after": "60 seconds"
+    }), 429
 
 
 def main():
@@ -194,6 +364,13 @@ def main():
     print(f"Port: {port}")
     print(f"Backend: {BambuClient.BASE_URL}")
     print(f"Tokens: {token_manager.count()} configured")
+    print()
+    
+    print("Rate Limits (per token):")
+    print(f"  Device Queries: {RATE_LIMITS['default']}")
+    print(f"  User Endpoints: {RATE_LIMITS['user']}")
+    print(f"  Admin Endpoints: {RATE_LIMITS['admin']}")
+    print(f"  Health Checks: {RATE_LIMITS['health']}")
     print()
     
     if PROXY_MODE == "strict":

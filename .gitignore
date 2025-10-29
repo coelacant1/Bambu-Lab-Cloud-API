@@ -40,3 +40,6 @@ test_config.json
 test_upload.3mf
 analysis/
 analysis/*
+
+# VSCode
+*.code-workspace

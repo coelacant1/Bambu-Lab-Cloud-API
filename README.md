@@ -96,15 +96,19 @@ The `bambulab/` package provides a unified Python interface for Bambu Lab Cloud 
 ### Installation
 
 ```bash
-# Install from PyPI
+# Install from PyPI (includes all features)
 pip install bambu-lab-cloud-api
 
-# Or install directly from GitHub
+# Or install latest from GitHub
 pip install git+https://github.com/coelacant1/Bambu-Lab-Cloud-API.git
-
-# With server components
-pip install bambu-lab-cloud-api[server]
 ```
+
+**v1.0.4+** includes everything by default:
+- Cloud API client
+- MQTT support
+- Camera streaming
+- Proxy servers with rate limiting
+- CLI tools
 
 See [INSTALL.md](INSTALL.md) for detailed installation instructions.
 
