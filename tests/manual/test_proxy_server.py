@@ -199,6 +199,8 @@ class ProxyTester:
             required_fields=['devices']
         )
         
+        # Note: Real-time MQTT endpoint requires POST to start, tested in separate section
+        
         self.test_endpoint(
             "Get Print Jobs",
             "GET", "/v1/iot-service/api/user/print"
@@ -257,6 +259,70 @@ class ProxyTester:
             expected_status=502  # Known to fail
         )
         
+        # 6. MQTT Real-Time Monitoring (On-Demand)
+        print("\n" + "=" * 80)
+        print("SECTION 6: MQTT REAL-TIME MONITORING")
+        print("=" * 80)
+        
+        # Get a device ID first
+        print("\nFetching device list to test MQTT...")
+        status_code, devices_data, _ = self._make_request('GET', '/v1/iot-service/api/user/bind')
+        
+        if status_code == 200 and devices_data and devices_data.get('devices'):
+            test_device_id = devices_data['devices'][0].get('dev_id')
+            print(f"Using device: {test_device_id}")
+            
+            # Test starting MQTT session
+            print("\nStarting MQTT session...")
+            status_code, start_result, _ = self._make_request(
+                'POST', 
+                '/v1/iot-service/api/user/device/realtime/start',
+                json={'device_id': test_device_id}
+            )
+            
+            if status_code == 200:
+                print(f"  MQTT session started")
+                print(f"    Status: {start_result.get('status')}")
+                print(f"    Expires in: {start_result.get('expires_in')}s")
+                
+                # Wait a moment for data
+                print("\n  Waiting 5 seconds for MQTT data...")
+                time.sleep(5)
+                
+                # Test getting real-time data
+                # Accept both 200 (has data) and 202 (waiting for data)
+                status_code_rt, data_rt, _ = self._make_request(
+                    'GET', 
+                    f"/v1/iot-service/api/user/device/realtime?device_id={test_device_id}"
+                )
+                
+                print(f"\n  Real-time data status: {status_code_rt}")
+                if status_code_rt == 200:
+                    print(f"  Got real-time data")
+                    print(json.dumps(data_rt, indent=2))
+                    self.results['passed'] += 1
+                elif status_code_rt == 202:
+                    print(f"  Still waiting for first MQTT message (HTTP 202)")
+                    print(f"    This is normal - MQTT connection may take a few seconds")
+                    print(json.dumps(data_rt, indent=2))
+                    self.results['skipped'] += 1
+                else:
+                    print(f"  Unexpected status: {status_code_rt}")
+                    print(json.dumps(data_rt, indent=2))
+                    self.results['failed'] += 1
+            else:
+                print(f"  Failed to start MQTT session: {status_code}")
+                print(f"    Response: {start_result}")
+        else:
+            print("  Skipped - No devices available for MQTT test")
+        
+        # Test without active session (should fail)
+        self.test_endpoint(
+            "Get Real-Time Data (No Active Session)",
+            "GET", "/v1/iot-service/api/user/device/realtime?device_id=FAKE_DEVICE_ID",
+            expected_status=404
+        )
+        
         # 7. Admin Tests
         print("\n" + "=" * 80)
         print("SECTION 7: ADMIN ENDPOINTS")
@@ -266,6 +332,12 @@ class ProxyTester:
             "List Token Mappings",
             "GET", "/admin/tokens",
             required_fields=['count', 'tokens']
+        )
+        
+        self.test_endpoint(
+            "MQTT Status",
+            "GET", "/admin/mqtt",
+            required_fields=['active_sessions', 'session_duration', 'sessions']
         )
         
         # 8. Security Tests (Should fail in strict mode)
@@ -278,6 +350,9 @@ class ProxyTester:
             "POST", "/v1/iot-service/api/user/bind",
             expected_status=405  # Method Not Allowed
         )
+        
+        # Exception: MQTT start is allowed as POST even in strict mode
+        print("\n  Note: POST to /v1/iot-service/api/user/device/realtime/start is allowed (MQTT control)")
         
         # 9. Rate Limiting Tests
         if not self.skip_rate_limit_tests:
@@ -381,7 +456,7 @@ class ProxyTester:
         print(f"Total Tests: {self.results['passed'] + self.results['failed']}")
         print(f"Passed: {self.results['passed']}")
         print(f"Failed: {self.results['failed']}")
-        print(f"⊘ Skipped: {self.results['skipped']}")
+        print(f"Skipped: {self.results['skipped']}")
         print()
         
         success_rate = (self.results['passed'] / 

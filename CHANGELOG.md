@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.5] - 2025-10-29
+
+### Added - 2025-10-29
+- **On-Demand MQTT Monitoring**
+  - New endpoint: `POST /v1/iot-service/api/user/device/realtime/start` - Start 2-minute MQTT monitoring session
+  - New endpoint: `GET /v1/iot-service/api/user/device/realtime?device_id={id}` - Get cached real-time MQTT data
+  - New endpoint: `GET /admin/mqtt` - View active MQTT session status
+  - Background cleanup thread automatically disconnects expired sessions
+  - Session-based model prevents resource exhaustion
+  - Only POST endpoint allowed in strict mode (doesn't modify printer state)
+
+### Changed
+- **Proxy Server (servers/proxy.py)**:
+  - Changed from automatic monitoring of all devices to on-demand session model
+  - Added `mqtt_sessions` dict to track active monitoring sessions
+  - Added configurable session duration (120 seconds) and cleanup interval (30 seconds)
+  - Updated `/health` endpoint to show active MQTT sessions count
+  - Modified strict mode check to allow MQTT session start POST endpoint
+
+- **Test Suite (tests/manual/test_proxy_server.py)**:
+  - Updated MQTT tests to use on-demand session workflow
+  - Increased MQTT wait time from 3 to 5 seconds for better data retrieval
+  - Added detailed status output for MQTT session creation and data retrieval
+
+---
+
 ## [1.0.4] - 2025-10-28
 
 ### Changed

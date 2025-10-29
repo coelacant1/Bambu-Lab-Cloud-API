@@ -43,3 +43,7 @@ analysis/*
 
 # VSCode
 *.code-workspace
+
+# Internal
+READONLY_API_REFERENCE.md
+tests/manual/log.txt
