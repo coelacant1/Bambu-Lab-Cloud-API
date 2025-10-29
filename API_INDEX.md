@@ -251,11 +251,11 @@ Comprehensive test suite available in `/tests/`:
 
 ```bash
 # Run all tests
-python tests/test_comprehensive.py
+python tests/manual/test_comprehensive.py
 
 # Test specific functionality
-python tests/test_mqtt.py
-python tests/test_upload.py
+python tests/unit/test_mqtt.py
+python tests/unit/test_upload.py
 ```
 
 Tests cover:
@@ -304,8 +304,8 @@ mqtt.connect()
 # 2. Subscribe to status
 def on_status(data):
     print(f"Progress: {data['mc_percent']}%")
-    print(f"Nozzle: {data['nozzle_temper']}°C")
-    print(f"Bed: {data['bed_temper']}°C")
+    print(f"Nozzle: {data['nozzle_temper']}C")
+    print(f"Bed: {data['bed_temper']}C")
 
 mqtt.on_message = on_status
 mqtt.subscribe_status()

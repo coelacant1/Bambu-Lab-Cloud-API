@@ -1,0 +1,20 @@
+{
+  "cloud_token": "YOUR_BAMBU_CLOUD_TOKEN",
+  "test_modes": {
+    "cloud_api": true,
+    "mqtt": true,
+    "video_stream": true,
+    "file_upload": false,
+    "local_ftp": false
+  },
+  "test_file": {
+    "create_dummy": true,
+    "path": "test_model.3mf",
+    "size_mb": 0.1
+  },
+  "timeouts": {
+    "mqtt_connect": 10,
+    "video_frame": 15,
+    "api_request": 30
+  }
+}

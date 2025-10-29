@@ -227,7 +227,7 @@ The response is a nested JSON with a `print` object containing 60+ fields:
 
 | Category | Fields | Description |
 |----------|--------|-------------|
-| **Temperatures** | `nozzle_temper`, `bed_temper`, `chamber_temper` | Current temperatures in °C |
+| **Temperatures** | `nozzle_temper`, `bed_temper`, `chamber_temper` | Current temperatures in C |
 | **Progress** | `mc_percent`, `layer_num`, `mc_remaining_time` | Print progress info |
 | **State** | `gcode_state`, `mc_print_stage`, `print_type` | Current printer state |
 | **Speeds** | Fan speeds, `spd_mag`, `spd_lvl` | Fan speeds and print speed |

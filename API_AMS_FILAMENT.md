@@ -45,14 +45,14 @@ for unit in ams_info['ams_units']:
     print(f"\nAMS Unit {unit['unit_id']}:")
     print(f"  Software: {unit['sw_version']}")
     print(f"  Hardware: {unit['hw_version']}")
-    print(f"  Temperature: {unit['temperature']}°C")
+    print(f"  Temperature: {unit['temperature']}C")
     print(f"  Humidity: {unit['humidity']}")
     
     for tray in unit['trays']:
         print(f"\n  Tray {tray['tray_id']}:")
         print(f"    Type: {tray['filament_type']}")
         print(f"    Color: {tray['filament_color']}")
-        print(f"    Temp Range: {tray.get('nozzle_temp_min')}-{tray.get('nozzle_temp_max')}°C")
+        print(f"    Temp Range: {tray.get('nozzle_temp_min')}-{tray.get('nozzle_temp_max')}C")
         print(f"    Remaining: {tray.get('remaining')}mm")
 ```
 
@@ -142,7 +142,7 @@ for unit in ams_info['ams_units']:
 - `software_version`: AMS firmware version
 - `hardware_version`: AMS hardware model (e.g., "AMS08")
 - `tray_count`: Number of trays in this unit (typically 4)
-- `temperature`: Current AMS temperature (°C)
+- `temperature`: Current AMS temperature (C)
 - `humidity`: Humidity level index (0-5, lower is drier)
 - `humidity_raw`: Raw humidity percentage
 - `dry_time`: Time spent in drying mode (seconds)
@@ -154,9 +154,9 @@ for unit in ams_info['ams_units']:
 - `filament_type`: Material type (PLA, PETG, ABS, TPU, PA, PC, etc.)
 - `filament_color`: RGBA hex color code
 - `tray_info_idx`: Bambu Lab filament profile ID
-- `nozzle_temp_min`: Minimum nozzle temperature (°C)
-- `nozzle_temp_max`: Maximum nozzle temperature (°C)
-- `bed_temp`: Bed temperature setting (°C)
+- `nozzle_temp_min`: Minimum nozzle temperature (C)
+- `nozzle_temp_max`: Maximum nozzle temperature (C)
+- `bed_temp`: Bed temperature setting (C)
 - `tray_weight`: Filament weight (grams)
 - `tray_diameter`: Filament diameter (mm, typically 1.75)
 - `total_len`: Total filament length (mm)
@@ -268,7 +268,7 @@ def list_all_filaments(device_id):
     
     for unit in ams_info['ams_units']:
         print(f"AMS Unit {unit['unit_id']} (v{unit['software_version']})")
-        print(f"  Temperature: {unit['temperature']}°C")
+        print(f"  Temperature: {unit['temperature']}C")
         print(f"  Humidity: Level {unit['humidity']}")
         print("-" * 50)
         
@@ -287,7 +287,7 @@ def list_all_filaments(device_id):
             print(f"    Color: {color}")
             temp_min = tray.get('nozzle_temp_min', 'N/A')
             temp_max = tray.get('nozzle_temp_max', 'N/A')
-            print(f"    Nozzle Temp: {temp_min}-{temp_max}°C")
+            print(f"    Nozzle Temp: {temp_min}-{temp_max}C")
             
             remaining = tray.get('remain', -1)
             total = tray.get('total_len', 0)
@@ -316,7 +316,7 @@ def monitor_ams_environment(device_id):
         humidity_raw = int(unit['humidity_raw'])
         
         print(f"AMS Unit {unit['unit_id']}:")
-        print(f"  Temperature: {temp}°C")
+        print(f"  Temperature: {temp}C")
         print(f"  Humidity: Level {humidity_idx} ({humidity_raw}%)")
         
         # Check conditions
@@ -354,7 +354,7 @@ def on_message(data):
             temp = unit.get('temp', 'N/A')
             humidity = unit.get('humidity', 'N/A')
             
-            print(f"AMS Unit {unit_id}: {temp}°C, Humidity {humidity}%")
+            print(f"AMS Unit {unit_id}: {temp}C, Humidity {humidity}%")
             
             for tray in unit.get('tray', []):
                 tray_id = tray.get('id', 0)

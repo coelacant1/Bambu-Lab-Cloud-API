@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "bambu-lab-cloud-api"
-version = "1.0.3"
+version = "1.0.4"
 description = "Python library for Bambu Lab 3D printer Cloud API, MQTT, and local connections"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -31,20 +31,13 @@ dependencies = [
     "requests>=2.25.0",
     "paho-mqtt>=1.6.0",
     "opencv-python>=4.0.0",
+    "flask>=2.0.0",
+    "flask-cors>=3.0.0",
+    "flask-limiter>=3.5.0",
 ]
 
 [project.optional-dependencies]
-server = [
-    "flask>=2.0.0",
-    "flask-cors>=3.0.0",
-]
 dev = [
-    "pytest>=7.0.0",
-    "pytest-cov>=4.0.0",
-]
-all = [
-    "flask>=2.0.0",
-    "flask-cors>=3.0.0",
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
 ]

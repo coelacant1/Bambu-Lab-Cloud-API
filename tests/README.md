@@ -2,91 +2,99 @@
 
 ## Overview
 
-This directory contains comprehensive test suites for the Bambu Lab Cloud API library. The tests are designed to validate functionality and provide detailed output of all API responses.
+This directory contains comprehensive test suites for the Bambu Lab Cloud API library. The tests are organized into three categories:
 
-## Test Files
+- **`unit/`** - Unit tests for API methods, models, and local functionality (mocked, no real API calls)
+- **`integration/`** - Integration tests that verify imports and object instantiation (no credentials needed)
+- **`manual/`** - Live tests against the actual Bambu Lab Cloud API (requires credentials)
 
-### `test_comprehensive.py` - Enhanced with Full Data Output
-The main comprehensive test suite that exercises all major functionality:
+## Directory Structure
 
-**Features:**
-- Detailed Data Output: Prints ALL data fields from API responses
-- Live MQTT Monitoring: Shows real-time data streams
-- Temperature Tracking: Displays nozzle, bed, and chamber temperatures
-- Fan Speed Monitoring: Shows all fan speeds
-- Complete Field Lists: Dumps every field returned by the API
-- Control Command Testing: Validates all MQTT control methods
-- Video Stream Testing: Tests camera access and video frames
+### `unit/` - Unit Tests
 
-**What Gets Printed:**
-- Device info (name, serial, model, status, ALL fields)
-- Firmware versions (current, available, OTA data, AMS versions)
-- Print status (temperatures, fans, progress, ALL fields)
-- User profile (UID, name, email, printer models, ALL fields)
-- Camera credentials (TTCode, password, auth key, ALL fields)
-- Projects, tasks, notifications, messages (with full details)
-- Slicer settings and resources
-- MQTT data streams (print data, AMS data, camera, lights)
-- MQTT control commands (pause, resume, stop, temp controls)
+Automated tests that use mocking and don't require real API credentials. These tests verify individual components work correctly in isolation.
 
-**Usage:**
+**Files:**
+- `test_auth.py` - Authentication and token management tests
+- `test_client.py` - HTTP API client methods tests
+- `test_models.py` - Data model classes (Device, PrinterStatus, etc.)
+- `test_mqtt_commands.py` - MQTT control commands with mocked connections
+- `test_compatibility.py` - Compatibility tests
+- `test_proxy.py` - Proxy server functionality tests
+
+**Run unit tests:**
 ```bash
-# Configure credentials
+python -m unittest discover tests/unit
+```
+
+### `integration/` - Integration Tests
+
+Tests that verify the library components work together correctly without requiring live API credentials. These test imports, object instantiation, and basic functionality.
+
+**Files:**
+- `test_integration.py` - Module imports and basic functionality tests
+
+**Run integration tests:**
+```bash
+python tests/integration/test_integration.py
+```
+
+### `manual/` - Manual/Live Tests
+
+Interactive tests that exercise the actual Bambu Lab Cloud API. These require valid credentials and an active printer connection.
+
+**Files:**
+- `test_comprehensive.py` - Full API and MQTT test suite
+- `test_proxy_server.py` - Proxy server endpoint tests
+- `test_config.json.example` - Configuration template
+
+**Configuration:**
+```bash
+cd tests/manual
 cp test_config.json.example test_config.json
 nano test_config.json  # Add your Bambu Cloud token
+```
+
+**Run manual tests:**
+```bash
+python tests/manual/test_comprehensive.py
+python tests/manual/test_proxy_server.py
+```
+
+## Running All Tests
+
+### Run All Unit Tests
+```bash
+python -m unittest discover tests/unit
+```
+
+### Run Integration Tests (No Credentials Needed)
+```bash
+python tests/integration/test_integration.py
+```
+
+### Run Comprehensive Live Tests
+```bash
+# Setup credentials first
+cd tests/manual
+cp test_config.json.example test_config.json
+nano test_config.json
 
 # Run tests
 python test_comprehensive.py
 ```
 
-**Output Example:**
+### Run Individual Unit Tests
+```bash
+python -m unittest tests/unit/test_client.py
+python -m unittest tests/unit/test_mqtt_commands.py
+python -m unittest tests/unit/test_models.py
 ```
-======================================================================
-  Cloud API Tests
-======================================================================
-
-    DEVICE INFO:
-       Name: X1 Carbon
-       Serial: 01S00A123456789
-       Model: X1 Carbon (3DP01)
-       Online: Yes
-       ...
-
-    ALL DEVICE DATA FIELDS (25 fields):
-       dev_id: 01S00A123456789
-       name: X1 Carbon
-       online: True
-       ...
-
-    FIRMWARE VERSION DATA:
-       Firmware: 1.07.00.00
-       ...
-```
-
-See [TEST_OUTPUT_GUIDE.md](TEST_OUTPUT_GUIDE.md) for complete details on all output.
-
-### `test_integration.py`
-Tests module imports and basic functionality without requiring credentials.
-
-### `test_client.py`
-Unit tests for the BambuClient HTTP API methods.
-
-### `test_mqtt_commands.py`
-Unit tests for MQTT control commands with mocked connections.
-
-### `test_auth.py`
-Tests for authentication and token management.
-
-### `test_models.py`
-Tests for data model classes (Device, PrinterStatus, etc.).
-
-### `test_proxy.py`
-Tests for the proxy server functionality.
 
 ## Configuration
 
-### `test_config.json`
-Main configuration file for live tests. Copy from `test_config.json.example`:
+### `manual/test_config.json`
+Main configuration file for live tests. Copy from `test_config.json.example` in the `manual/` directory:
 
 ```json
 {
@@ -108,10 +116,50 @@ Main configuration file for live tests. Copy from `test_config.json.example`:
 
 **Getting Your Cloud Token:**
 1. Log into Bambu Studio/Handy
-2. Go to Settings → Account
+2. Go to Settings -> Account
 3. Copy your access token
 
+## Test Categories Explained
+
+### Unit Tests (`unit/`)
+- **Purpose:** Test individual components in isolation
+- **Credentials Required:** No
+- **Mocking:** Yes
+- **When to Run:** During development, before commits, in CI/CD
+- **Examples:** Testing that API methods format requests correctly, models parse data correctly
+
+### Integration Tests (`integration/`)
+- **Purpose:** Test that components work together
+- **Credentials Required:** No
+- **Mocking:** No (but no real API calls)
+- **When to Run:** To verify imports and basic instantiation work
+- **Examples:** Testing that all modules can be imported, objects can be created
+
+### Manual/Live Tests (`manual/`)
+- **Purpose:** Test against real Bambu Lab Cloud API
+- **Credentials Required:** Yes
+- **Mocking:** No
+- **When to Run:** Manual testing, verification of new features
+- **Examples:** Testing actual API responses, MQTT connections, video streams
+
 ## Running Tests
+
+### Quick Start
+
+**Run all automated tests (no credentials needed):**
+```bash
+# From repository root
+python -m unittest discover tests/unit
+python tests/integration/test_integration.py
+```
+
+**Run live API tests (credentials required):**
+```bash
+cd tests/manual
+cp test_config.json.example test_config.json
+nano test_config.json  # Add your token
+python test_comprehensive.py
+```
 
 ### Run All Comprehensive Tests
 ```bash

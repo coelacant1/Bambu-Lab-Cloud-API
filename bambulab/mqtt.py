@@ -210,7 +210,7 @@ class MQTTClient:
         """
         command = {"print": {"command": "set_nozzle_temp", "param": str(temperature)}}
         self.publish(command)
-        logger.info(f"Set nozzle temperature to {temperature}°C")
+        logger.info(f"Set nozzle temperature to {temperature}C")
     
     def set_bed_temp(self, temperature: int):
         """
@@ -221,7 +221,7 @@ class MQTTClient:
         """
         command = {"print": {"command": "set_bed_temp", "param": str(temperature)}}
         self.publish(command)
-        logger.info(f"Set bed temperature to {temperature}°C")
+        logger.info(f"Set bed temperature to {temperature}C")
     
     def set_chamber_temp(self, temperature: int):
         """
@@ -232,7 +232,7 @@ class MQTTClient:
         """
         command = {"print": {"command": "set_chamber_temp", "param": str(temperature)}}
         self.publish(command)
-        logger.info(f"Set chamber temperature to {temperature}°C")
+        logger.info(f"Set chamber temperature to {temperature}C")
     
     # Fan control commands
     

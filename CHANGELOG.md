@@ -2,7 +2,38 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.0.3]
+## [1.0.4] - 2025-10-28
+
+### Changed
+- **Simplified Installation** - All features now included in base install
+  - No longer need `[server]` or `[all]` extras
+  - `pip install bambu-lab-cloud-api` now includes everything
+  - Server dependencies (Flask, Flask-CORS, Flask-Limiter) included by default
+  - Only `[dev]` extra remains for development tools (pytest, pytest-cov)
+
+### Added
+- **Proxy Server Rate Limiting**
+  - Per-token rate limiting (not per-IP)
+  - Conservative limits at 1/4 of Bambu Cloud API limits
+  - Device queries: 30/min, User endpoints: 15/min, Admin: 10/min
+  - Automatic endpoint classification
+  - Clear HTTP 429 responses with retry guidance
+  
+- **Proxy Server Token Management**
+  - Support for UUID, random, and named tokens
+  
+- **Proxy Testing Changes**
+  - Full test suite: `tests/manual/test_proxy_server.py`
+  - Tests all GET endpoints
+  - Validates response structure
+  - Security testing (POST rejection)
+
+### Documentation
+- Updated `INSTALL.md` - Simplified installation instructions
+- Updated `README.md` - Reflects new installation method
+- Removed symbols that may not show on all systems
+
+## [1.0.3] - 2025-10-28
 
 ### Added
 - **Two-Factor Authentication Support**

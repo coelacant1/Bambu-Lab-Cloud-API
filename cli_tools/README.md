@@ -4,6 +4,62 @@ Command-line utilities for interacting with Bambu Lab 3D printers.
 
 ## Tools
 
+### login.py - Authentication & Token Management
+
+Authenticate with Bambu Lab and save your access token locally. Supports email verification (2FA) and multi-factor authentication.
+
+**Usage:**
+```bash
+# Interactive login (prompts for email/password)
+python login.py
+
+# Login with credentials
+python login.py --username user@email.com --password mypassword
+
+# Use China region
+python login.py --region china
+
+# Custom token file location
+python login.py --token-file ~/.my_bambu_token
+
+# Verify existing token
+python login.py --verify-only
+
+# Force new login (ignore existing token)
+python login.py --force
+```
+
+**Features:**
+- Interactive email/password prompts
+- Email verification code (2FA) support
+- Automatic token saving to `~/.bambu_token`
+- Token validation and testing
+- Regional support (Global/China)
+- Secure token file permissions (0600)
+
+**Examples:**
+```bash
+# First time login (interactive)
+python login.py
+# Prompts for email, password, and verification code
+
+# Login for China region
+python login.py --region china
+
+# Verify your saved token still works
+python login.py --verify-only
+
+# Force re-authentication
+python login.py --force --username user@email.com
+```
+
+**Token Storage:**
+- Default location: `~/.bambu_token`
+- File permissions: `0600` (user read/write only)
+- Used automatically by other CLI tools
+
+---
+
 ### monitor.py - Real-time MQTT Monitoring
 
 Monitor your printer in real-time with formatted output showing temperatures, progress, and more.
@@ -104,14 +160,65 @@ pip install opencv-python  # For viewing JPEG streams
 # VLC or ffmpeg for RTSP streams (X1 series)
 ```
 
+## Quick Start
+
+1. **Authenticate first:**
+   ```bash
+   python login.py
+   # Follow prompts to enter email, password, and verification code
+   ```
+
+2. **Query your devices:**
+   ```bash
+   python query.py $(cat ~/.bambu_token) --devices
+   ```
+
+3. **Monitor in real-time:**
+   ```bash
+   python monitor.py USERNAME $(cat ~/.bambu_token) DEVICE_ID
+   ```
+
+4. **View camera feed:**
+   ```bash
+   python camera_viewer.py $(cat ~/.bambu_token)
+   ```
+
 ## Dependencies
 
+All tools require the base package:
 ```bash
-# Core dependencies
+pip install bambu-lab-cloud-api
+```
+
+Individual tool dependencies:
+```bash
+# For monitor.py and query.py (included in base)
 pip install requests paho-mqtt
 
-# Optional for camera viewer
+# For camera_viewer.py (included in base)
 pip install opencv-python
+
+# For login.py (included in base)
+# No additional dependencies needed
+```
+
+## Tool Comparison
+
+| Tool | Purpose | Requires Token | Requires Device ID | Interactive |
+|------|---------|----------------|-------------------|-------------|
+| **login.py** | Get token | No | No | Yes |
+| **query.py** | Get device info | Yes | No | No |
+| **monitor.py** | Live MQTT data | Yes | Yes | Yes |
+| **camera_viewer.py** | Camera feed | Yes | Optional | Yes |
+
+## Workflow
+
+```
+1. login.py          → Get and save token
+2. query.py          → Find device IDs and info
+3. monitor.py        → Watch printer in real-time
+   OR
+   camera_viewer.py  → View camera feed
 ```
 
 ## Integration
